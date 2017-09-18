@@ -1,0 +1,5 @@
+# build artifacts
+project/
+target/
+*.class
+*.log
