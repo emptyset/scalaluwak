@@ -18,10 +18,12 @@ import uk.co.flax.luwak.matchers.HighlightsMatch
 import uk.co.flax.luwak.presearcher.TermFilteredPresearcher
 import uk.co.flax.luwak.queryparsers.LuceneQueryParser
 
-
 class LuwakDemo(var queriesFile: String = "", var inputDirectory: String = "") {
   val analyzer = new StandardAnalyzer()
   val logger = LoggerFactory.getLogger(classOf[LuwakDemo])
+
+  logger.info("queriesFile: " + queriesFile)
+  logger.info("inputDirectory: " + inputDirectory)
 
   def addQueries(monitor: Monitor, queriesFile: String) = {
     val queries = new ArrayList[MonitorQuery]()
@@ -71,24 +73,23 @@ class LuwakDemo(var queriesFile: String = "", var inputDirectory: String = "") {
     }
   }
 
-  logger.info("queriesFile: " + queriesFile)
-  logger.info("inputDirectory: " + inputDirectory)
-
-  try {
-    val monitor = new Monitor(new LuceneQueryParser("text", analyzer), new TermFilteredPresearcher())
-    addQueries(monitor, queriesFile)
-    val batch = DocumentBatch.of(buildDocs(inputDirectory))
-    val matches = monitor.`match`(batch, HighlightingMatcher.FACTORY)
-    outputMatches(matches)
-  } catch {
-    case e: Exception => {
-      logger.error(e.toString())
+  def run() = {
+    try {
+      val monitor = new Monitor(new LuceneQueryParser("text", analyzer), new TermFilteredPresearcher())
+      addQueries(monitor, queriesFile)
+      val batch = DocumentBatch.of(buildDocs(inputDirectory))
+      val matches = monitor.`match`(batch, HighlightingMatcher.FACTORY)
+      outputMatches(matches)
+      monitor.close()
+    } catch {
+      case e: Exception => {
+        logger.error(e.toString())
+      }
     }
   }
-
-  logger.info("done")
 }
 
 object Main extends App {
   val demo = new LuwakDemo("src/test/resources/demoqueries", "src/test/resources/gutenberg")
+  demo.run()
 }
